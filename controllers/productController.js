@@ -5,8 +5,8 @@ export const createProducts = async (req, res) => {
     const {
       title,
       description,
-      Slug,
-      subtitle,
+      slug,
+      subTitle,
       productDetails,
       descriptionDetails,
       priceBreaks,
@@ -17,8 +17,8 @@ export const createProducts = async (req, res) => {
     const product = await Product.create({
       title,
       description,
-      Slug,
-      subtitle,
+      slug,
+      subTitle,
       productDetails,
       descriptionDetails,
       priceBreaks,
