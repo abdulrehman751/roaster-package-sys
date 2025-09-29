@@ -2,7 +2,7 @@ import Product from "../models/Product.js";
 
 export const createProducts = async (req, res) => {
   try {
-    const [
+    const {
       title,
       description,
       Slug,
@@ -13,7 +13,7 @@ export const createProducts = async (req, res) => {
       iconDetails,
       FAQs,
       productImages,
-    ] = req.body;
+     } = req.body;
     const product = await Product.create({
       title,
       description,
