@@ -13,7 +13,7 @@ export const createProducts = async (req, res) => {
       iconDetails,
       FAQs,
       productImages,
-     } = req.body;
+    } = req.body;
     const product = await Product.create({
       title,
       description,
@@ -56,7 +56,6 @@ export const updateProducts = async (req, res) => {
     } else {
       return res.status(201).json({ message: "Products updated successfully" });
     }
-    
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -64,12 +63,12 @@ export const updateProducts = async (req, res) => {
 export const deleteProducts = async (req, res) => {
   try {
     const products = await Product.findByIdAndDelete(req.parms.id);
-        if (!products) {
+    if (!products) {
       return res.status(404).json({ message: "Products not found" });
     } else {
       return res.status(201).json({ message: "Products deleted successfully" });
     }
   } catch (error) {
-    req.status(500).json({message:error.message})
+    req.status(500).json({ message: error.message });
   }
 };
