@@ -6,6 +6,7 @@ import userRoutes from "./routes/userRoutes.js";
 import User from "./models/User.js";
 import cors from "cors";
 import { protect } from "./middleware/authMiddleware.js";
+import router from "./routes/userRoutes.js";
 const app = express();
 
 app.use(cors());
@@ -44,7 +45,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // routes
 
-app.use("/api/users", protect, userRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 
 const PORT = process.env.PORT || 5000;

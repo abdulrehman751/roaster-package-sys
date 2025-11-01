@@ -4,9 +4,17 @@ import User from "../models/User.js";
 // register user
 export const registerUser = async (req, res) => {
   try {
-    const [name, email, password] = req.body;
+    const { firstName, lastName, companyName, zipCode, email, password, } =
+      req.body;
 
-    if (!name || !email || !password) {
+    if (
+      !firstName ||
+      !lastName ||
+      !companyName ||
+      !zipCode ||
+      !email ||
+      !password
+    ) {
       return res
         .status(400)
         .json({ message: "Name,email and password are required" });
@@ -20,25 +28,30 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "Password atleast 6 characters" });
     }
     const hashPassword = await bcrypt.hash(password, 10);
-    const verifyToken = crypto.randomBytes(32).toString("hex");
 
     const user = await User.create({
-      name,
+      firstName,
+      lastName,
+      companyName,
+      zipCode,
       email,
       password: hashPassword,
-      role,
-      verifyToken,
+    
+      
     });
     console.log(user, "abdulrehman");
 
     res.status(201).json({
       _id: user._id,
-      name: user.name,
+      firstName: user.firstName,
+      lasttName: user.lastName,
       email: user.email,
-      role: user.role,
+      companyName: user.companyName,
+  
     });
+       console.log("✅ New User Created:", user.email);
 
-    await sendVerificationEmail(user.email, user.name, verifyToken);
+    await sendVerificationEmail(user.email, user.firstName,);
 
     res.status(201).json({
       message:
@@ -66,8 +79,6 @@ export const verifyEmail = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-
 
 // login
 export const loginUser = async (req, res) => {
