@@ -45,7 +45,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // routes
 
-app.use("/api/users", userRoutes);
+  app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 
 const PORT = process.env.PORT || 5000;
