@@ -33,7 +33,7 @@ const createTransporter = () => {
 export const sendVerificationEmail = async (toEmail, name, token) => {
   const transporter = createTransporter();
 
-  const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+  const baseUrl = process.env.BACKEND_URL || 'http://localhost:3000';
 
    const verifyUrl = `${baseUrl.replace(/\/$/, '')}/verify/${token}`;
 

@@ -5,7 +5,6 @@ import productRoutes from "./routes/productRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import User from "./models/User.js";
 import cors from "cors";
-import { protect } from "./middleware/authMiddleware.js";
 import router from "./routes/userRoutes.js";
 const app = express();
 
@@ -59,7 +58,9 @@ router.post("/login", async (req, res) => {
     }
 
     if (!user.isVerified) {
-      return res.status(400).json({ message: "Please verify your email first" });
+      return res
+        .status(400)
+        .json({ message: "Please verify your email first" });
     }
 
     res.status(200).json({ message: "Login successful", user });
@@ -67,7 +68,6 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 });
-
 
 router.get("/verify/:token", async (req, res) => {
   const { token } = req.params;
@@ -94,9 +94,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // routes
 
-  app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
-
 
 app.use("/", userRoutes);
 

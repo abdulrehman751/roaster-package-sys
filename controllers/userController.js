@@ -20,7 +20,7 @@ export const registerUser = async (req, res) => {
     ) {
       return res
         .status(400)
-        .json({ message: "Name, email and password are required" });
+        .json({ message:"firstName,lastName,companyName,zipCode,email and password are required"});
     }
     
     const userExists = await User.findOne({ email });
