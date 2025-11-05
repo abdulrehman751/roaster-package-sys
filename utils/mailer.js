@@ -17,6 +17,8 @@ const createTransporter = () => {
   const transportOptions = host
     ? { host, port, secure, auth: { user, pass } }
     : { service: 'gmail', auth: { user, pass } };
+    console.log('Creating mail transport with:', { host, port, user, secure: !!secure });
+
 
   const transporter = nodemailer.createTransport(transportOptions);
 
@@ -31,8 +33,9 @@ const createTransporter = () => {
 export const sendVerificationEmail = async (toEmail, name, token) => {
   const transporter = createTransporter();
 
-  const baseUrl = process.env.BASE_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
-  // const verifyUrl = `${baseUrl.replace(/\/$/, '')}/verify/${token}`;
+  const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+
+   const verifyUrl = `${baseUrl.replace(/\/$/, '')}/verify/${token}`;
 
   const html = `
     <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
@@ -53,7 +56,7 @@ export const sendVerificationEmail = async (toEmail, name, token) => {
   `;
 
   try {
-    const info = await transporter.sendVerificationMail({
+    const info = await transporter.sendMail({
       from: process.env.FROM_EMAIL || process.env.SMTP_USER,
       to: toEmail,
       subject: 'Please verify your Mylar Bags account',

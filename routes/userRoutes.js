@@ -10,6 +10,7 @@ router.post("/register", registerUser);
 
 router.post("/login", loginUser);
 
+
 // ✅ Email verification route
 router.get("/verify/:token", verifyEmail);
 

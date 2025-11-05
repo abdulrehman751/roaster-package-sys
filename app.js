@@ -20,6 +20,55 @@ app.use(
   })
 );
 
+// ✅ Check user verification status
+router.get("/status", async (req, res) => {
+  try {
+    const email = req.query.email;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      isVerified: user.isVerified,
+      message: user.isVerified ? "Email verified" : "Email not verified yet",
+    });
+  } catch (err) {
+    console.error("Error checking verification status:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid Credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid Credentials" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(400).json({ message: "Please verify your email first" });
+    }
+
+    res.status(200).json({ message: "Login successful", user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
+
 router.get("/verify/:token", async (req, res) => {
   const { token } = req.params;
   const user = await User.findOne({ verifyToken: token });
@@ -47,6 +96,9 @@ app.use(express.urlencoded({ extended: true }));
 
   app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
+
+
+app.use("/", userRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
