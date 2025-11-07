@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import User from "../models/User.js";
-import { sendVerificationEmail } from "../utils/mailer.js";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../utils/mailer.js";
 import generateToken from "../utils/generateToken.js";
 
 // register user
@@ -20,11 +20,14 @@ export const registerUser = async (req, res) => {
     ) {
       return res
         .status(400)
-        .json({ message:"firstName,lastName,companyName,zipCode,email and password are required"});
+        .json({
+          message:
+            "firstName,lastName,companyName,zipCode,email and password are required",
+        });
     }
-    
+
     const userExists = await User.findOne({ email });
-  
+
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -89,17 +92,23 @@ export const verifyEmail = async (req, res) => {
     const user = await User.findOne({ verifyToken: token });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid or expired verification link" });
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired verification link" });
     }
 
     // optional: check if already verified
     if (user.isVerified) {
-      return res.status(200).json({ message: "Account already verified. You can log in now." });
+      return res
+        .status(200)
+        .json({ message: "Account already verified. You can log in now." });
     }
 
     // optional: check expiry date (if stored)
     if (user.verifyTokenExpires && user.verifyTokenExpires < Date.now()) {
-      return res.status(400).json({ message: "Verification link has expired." });
+      return res
+        .status(400)
+        .json({ message: "Verification link has expired." });
     }
 
     // mark verified and clear token
@@ -126,7 +135,6 @@ export const verifyEmail = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 // login
 export const loginUser = async (req, res) => {
@@ -170,3 +178,106 @@ export const loginUser = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      // For security, don't reveal if email exists or not
+      return res.status(200).json({ 
+        message: "If this email is registered, you will receive password reset instructions." 
+      });
+    }
+    
+    // Generate token
+    const token = crypto.randomBytes(32).toString("hex");
+
+    // Save token and expiry
+    user.passwordResetToken = token;
+    user.passwordResetExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+    await user.save();
+
+    try {
+      await sendPasswordResetEmail(user.email, user.firstName, token);
+      
+      res.json({
+        success: true,
+        message: "Password reset instructions sent to your email"
+      });
+    } catch (emailError) {
+      // Reset the token if email fails
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save();
+      
+      console.error("Password reset email failed:", emailError);
+      return res.status(500).json({ 
+        message: "Failed to send password reset email. Please try again later." 
+      });
+    }
+  } catch (error) {
+    res.status(500).json({message:error.message})
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password, confirmPassword } = req.body;
+
+    // Validate input
+    if (!password || !confirmPassword) {
+      return res.status(400).json({ message: "Password and confirmation are required" });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    // Find user with valid token
+    const user = await User.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Password reset link is invalid or has expired" });
+    }
+
+    // Hash new password
+    const hashPassword = await bcrypt.hash(password, 10);
+    
+    // Update user
+    user.password = hashPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    // Generate new login token
+    const loginToken = generateToken(user._id);
+
+    res.json({ 
+      message: "Password has been reset successfully!",
+      token: loginToken,
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+

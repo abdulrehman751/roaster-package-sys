@@ -1,5 +1,12 @@
 import express from "express";
-import { loginUser, registerUser, verifyEmail } from "../controllers/userController.js";
+import {
+  registerUser,
+  loginUser,
+  verifyEmail,
+  forgotPassword,
+  resetPassword
+} from "../controllers/userController.js";
+
 
 const router = express.Router();
 
@@ -13,5 +20,8 @@ router.post("/login", loginUser);
 
 // ✅ Email verification route
 router.get("/verify/:token", verifyEmail);
+
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 
 export default router;

@@ -11,6 +11,8 @@ const userSchema = new mongoose.Schema(
     role: { type: String, default: "user", enum: ["user", "admin"] },
     isVerified: { type: Boolean, default: false },
     verifyToken: { type: String },
+    passwordResetToken: String,
+passwordResetExpires: Date,
   },
   {
     timestamps: true,
